@@ -1,19 +1,3 @@
-/**
-  ******************************************************************************
-  * @file    bsp_i2c_ee.c
-  * @author  STMicroelectronics
-  * @version V1.0
-  * @date    2013-xx-xx
-  * @brief   i2c EEPROM(AT24C02)应用函数bsp
-  ******************************************************************************
-  * @attention
-  *
-  * 实验平台:野火 iSO STM32 开发板 
-  * 论坛    :http://www.chuxue123.com
-  * 淘宝    :http://firestm32.taobao.com
-  *
-  ******************************************************************************
-  */ 
 
 #include "bsp_i2c_ee.h"
 		
@@ -21,22 +5,14 @@
 /* STM32 I2C 快速模式 */
 #define I2C_Speed              200000  //*
 
-/* 这个地址只要与STM32外挂的I2C器件地址不一样即可 */
+/* Adress of I2C for STM32  */
 #define I2Cx_OWN_ADDRESS7      0X0A   
-
-/* AT24C01/02每页有8个字节 */
-#define I2C_PageSize           8
-
-/* AT24C04/08A/16A每页有16个字节 */
-//#define I2C_PageSize           16	
-
-
-uint16_t EEPROM_ADDRESS;
+#define I2C_Slave_ADDRESS      0x50
 
 uint8_t temp_offset[18];
 
 /**
-  * @brief  I2C1 I/O配置
+  * @brief  I2C1 I/O set
   * @param  无
   * @retval 无
   */
@@ -101,37 +77,17 @@ static void I2C_Mode_Configu(void)
 
 
 /**
-  * @brief  I2C 外设(EEPROM)初始化
+  * @brief  I2C 
   * @param  无
   * @retval 无
   */
-void I2C_EE_Init(void)
+void I2C_BNO_Init(void)
 {
 
   I2C_GPIO_Config(); 
  
   I2C_Mode_Configu();
 
-/* 根据头文件i2c_ee.h中的定义来选择EEPROM要写入的地址 */
-#ifdef macEEPROM_Block0_ADDRESS
-  /* 选择 EEPROM Block0 来写入 */
-  EEPROM_ADDRESS = 0x50;
-#endif
-
-#ifdef macEEPROM_Block1_ADDRESS  
-	/* 选择 EEPROM Block1 来写入 */
-  EEPROM_ADDRESS = macEEPROM_Block1_ADDRESS;
-#endif
-
-#ifdef macEEPROM_Block2_ADDRESS  
-	/* 选择 EEPROM Block2 来写入 */
-  EEPROM_ADDRESS = macEEPROM_Block2_ADDRESS;
-#endif
-
-#ifdef macEEPROM_Block3_ADDRESS  
-	/* 选择 EEPROM Block3 来写入 */
-  EEPROM_ADDRESS = macEEPROM_Block3_ADDRESS;
-#endif
 }
 
 uint8_t I2C_WriteByte_s(uint8_t salve_addr,uint8_t* data_buffer,u8 NumByteToWrite)
@@ -149,7 +105,7 @@ uint8_t I2C_WriteByte_s(uint8_t salve_addr,uint8_t* data_buffer,u8 NumByteToWrit
 	Timeout = 0xFFFF;
 	/* Send slave address */
     /* Reset the address bit0 for write*/
-	I2C1->DR = EEPROM_ADDRESS | WR;
+	I2C1->DR = I2C_Slave_ADDRESS | WR;
 	/* Test on EV6 and clear it */
 	while((I2C1->SR1 & 0x0002)!= 0x0002){
 	  if(Timeout-- == 0)
@@ -198,7 +154,7 @@ uint8_t I2C_ReadByte(u8* pBuffer,u8 ReadAddr)
 			return 1;
 	}
 	/* Send EEPROM address for write */
-	I2C1->DR = EEPROM_ADDRESS | WR;
+	I2C1->DR = I2C_Slave_ADDRESS | WR;
 	Timeout = 0xFFFF;
 	/* Test on EV6 and clear it */
 	while((I2C1->SR1 & 0x0002)!= 0x0002){
@@ -221,7 +177,7 @@ uint8_t I2C_ReadByte(u8* pBuffer,u8 ReadAddr)
 	}
 	 /* Send slave address */
     /* Reset the address bit0 for read */
-	I2C1->DR = EEPROM_ADDRESS | RD;
+	I2C1->DR = I2C_Slave_ADDRESS | RD;
 	/* Wait until ADDR is set: EV6_3, then program ACK = 0, clear ADDR
 		and program the STOP just after ADDR is cleared. The EV6_3 
 		software sequence must complete before the current byte end of transfer.*/
@@ -267,7 +223,7 @@ uint8_t I2C_ReadByte_s(u8* pBuffer, u8 ReadAddr, u16 NumByteToRead)
 			return 1;
 	}
 	/* Send EEPROM address for write */
-	I2C1->DR = EEPROM_ADDRESS | WR;
+	I2C1->DR = I2C_Slave_ADDRESS | WR;
 	Timeout = 0xFFFF;
 	/* Test on EV6 and clear it */
 	while((I2C1->SR1 & 0x0002)!= 0x0002){
@@ -292,7 +248,7 @@ uint8_t I2C_ReadByte_s(u8* pBuffer, u8 ReadAddr, u16 NumByteToRead)
 		}
 		/* Send slave address */
 		/* Reset the address bit0 for read */
-		I2C1->DR = EEPROM_ADDRESS | RD;
+		I2C1->DR = I2C_Slave_ADDRESS | RD;
 		/* Wait until ADDR is set: EV6_3, then program ACK = 0, clear ADDR
 			and program the STOP just after ADDR is cleared. The EV6_3 
 			software sequence must complete before the current byte end of transfer.*/
@@ -333,7 +289,7 @@ uint8_t I2C_ReadByte_s(u8* pBuffer, u8 ReadAddr, u16 NumByteToRead)
 		}
 		/* Send slave address */
 		/* Reset the address bit0 for read */
-		I2C1->DR = EEPROM_ADDRESS | RD;
+		I2C1->DR = I2C_Slave_ADDRESS | RD;
 		/* Wait until ADDR is set: EV6_3, then program ACK = 0, clear ADDR
 			and program the STOP just after ADDR is cleared. The EV6_3 
 			software sequence must complete before the current byte end of transfer.*/
